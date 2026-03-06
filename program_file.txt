@@ -1,0 +1,197 @@
+using UnityEngine;
+using TMPro;
+using System.Collections;
+
+public class GameManager : MonoBehaviour
+{
+    public GameObject xPrefab;
+    public GameObject oPrefab;
+
+    public TextMeshProUGUI winnerText;
+    public TextMeshProUGUI playerScoreText;
+    public TextMeshProUGUI aiScoreText;
+    public TextMeshProUGUI drawScoreText;
+
+    private int[,] board = new int[3,3];
+
+    private int playerScore = 0;
+    private int aiScore = 0;
+    private int drawScore = 0;
+
+    private bool gameOver = false;
+
+    void Start()
+    {
+        ResetBoard();
+        UpdateScoreUI();
+    }
+
+    void ResetBoard()
+    {
+        board = new int[3,3];
+        gameOver = false;
+
+        foreach(GameObject mark in GameObject.FindGameObjectsWithTag("Mark"))
+        {
+            Destroy(mark);
+        }
+
+        winnerText.text = "";
+    }
+
+    public void PlayerMove(int row, int col, Transform cube)
+    {
+        if (gameOver) return;
+        if (board[row,col] != 0) return;
+
+        PlaceMark(row,col,1,cube);
+
+        if(CheckWinner(1))
+        {
+            PlayerWin();
+            return;
+        }
+
+        if(IsBoardFull())
+        {
+            Draw();
+            return;
+        }
+
+        StartCoroutine(AIMove());
+    }
+
+    IEnumerator AIMove()
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        for(int r=0;r<3;r++)
+        {
+            for(int c=0;c<3;c++)
+            {
+                if(board[r,c] == 0)
+                {
+                    GameObject cube = GameObject.Find("Cube_" + r + "_" + c);
+                    PlaceMark(r,c,2,cube.transform);
+
+                    if(CheckWinner(2))
+                    {
+                        AIWin();
+                        yield break;
+                    }
+
+                    if(IsBoardFull())
+                    {
+                        Draw();
+                        yield break;
+                    }
+
+                    yield break;
+                }
+            }
+        }
+    }
+
+    void PlaceMark(int row,int col,int player,Transform cube)
+    {
+        board[row,col] = player;
+
+        GameObject mark;
+
+        if(player == 1)
+            mark = Instantiate(xPrefab);
+        else
+            mark = Instantiate(oPrefab);
+
+        mark.tag = "Mark";
+
+        mark.transform.SetParent(cube);
+
+        mark.transform.localPosition = new Vector3(0,0.6f,0);
+        mark.transform.localRotation = Quaternion.identity;
+    }
+
+    bool CheckWinner(int player)
+    {
+        for(int i=0;i<3;i++)
+        {
+            if(board[i,0]==player && board[i,1]==player && board[i,2]==player)
+                return true;
+
+            if(board[0,i]==player && board[1,i]==player && board[2,i]==player)
+                return true;
+        }
+
+        if(board[0,0]==player && board[1,1]==player && board[2,2]==player)
+            return true;
+
+        if(board[0,2]==player && board[1,1]==player && board[2,0]==player)
+            return true;
+
+        return false;
+    }
+
+    bool IsBoardFull()
+    {
+        for(int r=0;r<3;r++)
+        {
+            for(int c=0;c<3;c++)
+            {
+                if(board[r,c] == 0)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    void PlayerWin()
+    {
+        gameOver = true;
+
+        playerScore++;
+        UpdateScoreUI();
+
+        winnerText.text = "PLAYER WINS";
+
+        StartCoroutine(RestartGame());
+    }
+
+    void AIWin()
+    {
+        gameOver = true;
+
+        aiScore++;
+        UpdateScoreUI();
+
+        winnerText.text = "AI WINS";
+
+        StartCoroutine(RestartGame());
+    }
+
+    void Draw()
+    {
+        gameOver = true;
+
+        drawScore++;
+        UpdateScoreUI();
+
+        winnerText.text = "DRAW";
+
+        StartCoroutine(RestartGame());
+    }
+
+    IEnumerator RestartGame()
+    {
+        yield return new WaitForSeconds(3f);
+
+        ResetBoard();
+    }
+
+    void UpdateScoreUI()
+    {
+        playerScoreText.text = "Player : " + playerScore;
+        aiScoreText.text = "AI : " + aiScore;
+        drawScoreText.text = "Draw : " + drawScore;
+    }
+}
