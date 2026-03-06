@@ -1,0 +1,11 @@
+using UnityEngine;
+
+public class CellClick : MonoBehaviour
+{
+    public int cellIndex;
+
+    void OnMouseDown()
+    {
+        GameManager.instance.PlayerMove(cellIndex);
+    }
+}
