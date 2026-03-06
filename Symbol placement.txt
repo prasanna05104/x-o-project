@@ -1,0 +1,28 @@
+using UnityEngine;
+using TMPro;
+
+public class SymbolPlacement : MonoBehaviour
+{
+    public TextMeshPro textSymbol;
+
+    void Start()
+    {
+        CenterText();
+    }
+
+    void CenterText()
+    {
+        textSymbol.alignment = TextAlignmentOptions.Center;
+        textSymbol.rectTransform.localPosition = Vector3.zero;
+    }
+
+    public void SetSymbol(string symbol)
+    {
+        textSymbol.text = symbol;
+    }
+
+    public void ClearSymbol()
+    {
+        textSymbol.text = "";
+    }
+}
